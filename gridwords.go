@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -31,12 +31,38 @@ func getLetters(s string) []string {
 	return res
 }
 
-
 var res map[string]struct{}
 var wg sync.WaitGroup
 
- else {
-		t = []string{"cat", "bat", "mat"}
+func main() {
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	const usage = `Usage: gridwords <Path-to-the-words-file>
+
+The program will generate two files in $PWD named three.txt and four.txt
+
+`
+
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	if strings.HasPrefix(os.Args[1], "-") {
+		fmt.Fprintf(os.Stderr, usage)
+		return
+	}
+
+	// Assuming os.Args[1] points to a
+	// valid three.txt file having a list of words
+	content, err := ioutil.ReadFile(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	t := strings.Split(string(content), "\n")
+	if t[len(t)-1] == "" {
+		t = t[:len(t)-1]
 	}
 
 	res = make(map[string]struct{})
@@ -47,12 +73,14 @@ var wg sync.WaitGroup
 	go func(ch chan string, quit chan bool) {
 		var zs struct{}
 
-		select {
-		case l := <-ch:
-			log.Println(l)
-			res[l] = zs
-		case <-quit:
-			break
+		for {
+			select {
+			case l := <-ch:
+				log.Println(l)
+				res[l] = zs
+			case <-quit:
+				break
+			}
 		}
 	}(ch, quit)
 
