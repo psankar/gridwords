@@ -1,4 +1,4 @@
-// Sankar <sankar.curiosity@gmail.com>
+// Author: Sankar <sankar.curiosity@gmail.com>
 // Distributed under Creative Commons Zero License - Public Domain
 // For more information see LICENSE file
 package main
