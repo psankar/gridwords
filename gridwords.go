@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,15 +28,12 @@ func getLetters(s string) []string {
 		i = j
 	}
 
-	if len(res) != 9 {
-		log.Fatal(s, res)
-	}
-
 	return res
 }
 
 var res map[string]struct{}
 var wg sync.WaitGroup
+var gridWriter *bufio.Writer
 
 func main() {
 
@@ -56,6 +54,12 @@ The program will generate two files in $PWD named three.txt and four.txt
 		fmt.Fprintf(os.Stderr, usage)
 		return
 	}
+
+	gridf, err := os.Create("grid.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	gridWriter = bufio.NewWriter(gridf)
 
 	// Assuming os.Args[1] points to a
 	// valid three.txt file having a list of words
@@ -79,7 +83,7 @@ The program will generate two files in $PWD named three.txt and four.txt
 		for {
 			select {
 			case l := <-ch:
-				log.Println(l)
+				gridWriter.WriteString(l + "\n")
 				res[l] = zs
 			case <-quit:
 				break
@@ -92,11 +96,19 @@ The program will generate two files in $PWD named three.txt and four.txt
 
 		// First word of the grid cannot contain these letters
 		// as no word can begin with these letters.
-		if strings.Contains(t[i], "க்ங்ச்ஞ்ட்ண்த்ந்ப்ம்ய்ர்ல்வ்ழ்ள்ற்ன்ங்ஙஙாஙிஙீஙுஙூஙெஙேஙைஙொஙோஙௌண்ணணணிணீணுணூணெணேணைணொணோணௌழ்ழழாழிழீழுழூழெழேழைழொழோழௌள்ளளாளிளீளுளூளெளேளைளொளோளௌற்றறாறிறீறுறூறெறேறைறொறோறௌன்னனானினீனுனூனெனேனைனொனோனௌ") {
-			continue
-		}
+		// if strings.ContainsAny(t[i], "அக்ங்ச்ஞ்ட்ண்த்ந்ப்ம்ய்ர்ல்வ்ழ்ள்ற்ன்ங்ஙஙாஙிஙீஙுஙூஙெஙேஙைஙொஙோஙௌண்ணணணிணீணுணூணெணேணைணொணோணௌழ்ழழாழிழீழுழூழெழேழைழொழோழௌள்ளளாளிளீளுளூளெளேளைளொளோளௌற்றறாறிறீறுறூறெறேறைறொறோறௌன்னனானினீனுனூனெனேனைனொனோனௌ") {
+		// continue
+		// }
+
+		firstWord := getLetters(t[i])
 
 		for j := 0; j < len(t); j++ {
+
+			secondWord := getLetters(t[j])
+			if secondWord[0] != firstWord[1] {
+				continue
+			}
+
 			if i == j {
 				continue
 			}
@@ -132,4 +144,5 @@ The program will generate two files in $PWD named three.txt and four.txt
 	quit <- true
 
 	log.Println(len(res))
+	gridWriter.Flush()
 }
